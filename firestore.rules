@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Cloud Firestore のセキュリティルール。
+// データベースへのアクセスは、デフォルトですべて拒否し、
+// 明示的に許可した条件だけを通す（ホワイトリスト方式）。
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // users コレクション：会員プロフィール。
+    // ドキュメントID は uid（ログインユーザーの Firebase UID）。
+    match /users/{userId} {
+      // 本人（ログイン中の uid と、ドキュメントID が一致する）だけが
+      // 自分のドキュメントを読み書きできる。
+      allow read, write: if request.auth != null
+                         && request.auth.uid == userId;
+    }
+
+    // 上記で明示的に許可していないすべてのアクセスは拒否する。
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
