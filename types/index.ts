@@ -5,6 +5,9 @@
 // ユーザー（会員）関連
 // ----------------------------------------------------------------
 
+// 会員の権限。初期値は "member"。将来的に管理者（admin）を追加できる。
+export type UserRole = "member" | "admin";
+
 // Firebase Authentication + Firestore に保存する会員プロフィール。
 // uid / email / displayName / photoURL は Google ログインから取得できる項目。
 export type User = {
@@ -12,8 +15,9 @@ export type User = {
   email: string | null; // メールアドレス
   displayName: string | null; // 表示名
   photoURL: string | null; // プロフィール画像の URL
+  role: UserRole; // 権限（初回ログイン時は "member"）
   graduationYear?: number; // 卒業年度（フェーズ1の会員プロフィールで入力）
-  createdAt?: string; // 登録日時（ISO 文字列）
+  createdAt?: unknown; // 登録日時（Firestore の serverTimestamp で記録）
 };
 
 // ----------------------------------------------------------------
