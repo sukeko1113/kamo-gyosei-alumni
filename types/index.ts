@@ -46,6 +46,14 @@ export type Category = MicroCMSBase & {
   name: string;
 };
 
+// news エンドポイント（お知らせ）の記事 1 件分の型。
+// microCMS の管理画面で定義したフィールドに対応する。
+export type News = MicroCMSBase & {
+  title: string; // タイトル
+  content: string; // 本文（リッチエディタの HTML 文字列として返る）
+  publishedDate?: string; // 掲載日（日時フィールド。ISO 文字列として返る）
+};
+
 // blogs エンドポイントの記事 1 件分の型。
 // microCMS の管理画面で定義するフィールドに合わせて拡張していく。
 export type Blog = MicroCMSBase & {
