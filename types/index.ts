@@ -5,6 +5,9 @@
 // ユーザー（会員）関連
 // ----------------------------------------------------------------
 
+// 会員の権限。初期値は "member"。将来的に管理者（admin）を追加できる。
+export type UserRole = "member" | "admin";
+
 // Firebase Authentication + Firestore に保存する会員プロフィール。
 // uid / email / displayName / photoURL は Google ログインから取得できる項目。
 export type User = {
@@ -12,19 +15,17 @@ export type User = {
   email: string | null; // メールアドレス
   displayName: string | null; // 表示名
   photoURL: string | null; // プロフィール画像の URL
-  role?: string; // 権限（例: "member" / "admin"）。クライアントからは変更不可。
-  createdAt?: string; // 登録日時（ISO 文字列）
+  role: UserRole; // 権限（初回ログイン時は "member"）。クライアントからは変更不可。
 
   // --- 会員自身が編集できるプロフィール項目（すべて任意・未入力可） ---
-  graduationYear?: number | null; // 卒業年次（西暦）。未入力のときは null。
+  graduationYear?: number; // 卒業年次（西暦）。未入力のときは保存しない / null。
   maidenName?: string; // 旧姓
   furigana?: string; // 氏名のふりがな（全角カナ）
   clubActivity?: string; // 当時の部活動・クラスなど
   contactEmail?: string; // 連絡用メール（Google アカウントとは別にしたい人向け）
 
-  // updatedAt は Firestore の serverTimestamp() で保存するため、
-  // 読み出し時は Timestamp 型になる。詳細な型は使う側で扱う。
-  updatedAt?: unknown; // 最終更新日時（serverTimestamp）
+  createdAt?: unknown; // 登録日時（Firestore の serverTimestamp で記録）
+  updatedAt?: unknown; // 最終更新日時（Firestore の serverTimestamp で記録）
 };
 
 // ----------------------------------------------------------------

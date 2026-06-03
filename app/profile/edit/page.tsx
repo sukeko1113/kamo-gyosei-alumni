@@ -10,7 +10,7 @@ import Link from "next/link";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
 import { db } from "@/lib/firebase";
-import { useAuthUser } from "@/hooks/use-auth-user";
+import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +36,7 @@ const EMPTY_FORM: FormValues = {
 
 export default function ProfileEditPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuthUser();
+  const { user, loading: authLoading } = useAuth();
 
   // フォームの入力値。
   const [form, setForm] = useState<FormValues>(EMPTY_FORM);
@@ -47,10 +47,10 @@ export default function ProfileEditPage() {
   // 保存結果のメッセージ。type で成功/失敗を色分けする。
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // --- 認証チェック：未ログインならトップページへ戻す ---
+  // --- 認証チェック：未ログインならログインページへ戻す ---
   useEffect(() => {
     if (!authLoading && !user) {
-      router.replace("/");
+      router.replace("/login");
     }
   }, [authLoading, user, router]);
 
