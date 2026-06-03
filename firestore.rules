@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Cloud Firestore のセキュリティルール。
+// このファイルは Firebase コンソール、または `firebase deploy --only firestore:rules`
+// で公開して初めて有効になる（このリポジトリに置くだけでは反映されない）。
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // users コレクション：1 ドキュメント = 1 会員（ドキュメント ID は uid）。
+    match /users/{uid} {
+
+      // 読み取り：本人のみ。
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      // 作成：本人のみ。
+      allow create: if request.auth != null && request.auth.uid == uid;
+
+      // 更新：本人のみ。かつ role を書き換えられないようにする。
+      //   request.resource.data … 更新後のドキュメント全体
+      //   resource.data          … 更新前のドキュメント全体
+      // 更新前後で role が同じであることを必須にすることで、
+      // クライアントからの権限昇格（role の改ざん）を防ぐ。
+      allow update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.role == resource.data.role;
+
+      // 削除：クライアントからは禁止。
+      allow delete: if false;
+    }
+  }
+}

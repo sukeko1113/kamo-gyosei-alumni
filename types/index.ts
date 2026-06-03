@@ -12,8 +12,19 @@ export type User = {
   email: string | null; // メールアドレス
   displayName: string | null; // 表示名
   photoURL: string | null; // プロフィール画像の URL
-  graduationYear?: number; // 卒業年度（フェーズ1の会員プロフィールで入力）
+  role?: string; // 権限（例: "member" / "admin"）。クライアントからは変更不可。
   createdAt?: string; // 登録日時（ISO 文字列）
+
+  // --- 会員自身が編集できるプロフィール項目（すべて任意・未入力可） ---
+  graduationYear?: number | null; // 卒業年次（西暦）。未入力のときは null。
+  maidenName?: string; // 旧姓
+  furigana?: string; // 氏名のふりがな（全角カナ）
+  clubActivity?: string; // 当時の部活動・クラスなど
+  contactEmail?: string; // 連絡用メール（Google アカウントとは別にしたい人向け）
+
+  // updatedAt は Firestore の serverTimestamp() で保存するため、
+  // 読み出し時は Timestamp 型になる。詳細な型は使う側で扱う。
+  updatedAt?: unknown; // 最終更新日時（serverTimestamp）
 };
 
 // ----------------------------------------------------------------
