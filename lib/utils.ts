@@ -8,3 +8,15 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+// ISO 形式の日時文字列（例: microCMS の publishedAt）を
+// 日本語表記（例: 2026年6月5日）に整形して返す。
+// 日付がずれないよう、表示の基準は日本時間（Asia/Tokyo）に固定する。
+export function formatDateJa(dateString: string): string {
+  return new Date(dateString).toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "Asia/Tokyo",
+  });
+}

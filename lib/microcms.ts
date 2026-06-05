@@ -3,7 +3,7 @@
 // ビルドエラーになる。API キーがブラウザに漏れるのを防ぐための安全装置。
 import "server-only";
 import { createClient, type MicroCMSQueries } from "microcms-js-sdk";
-import type { Blog, BlogListResponse } from "@/types";
+import type { Blog, BlogListResponse, News, NewsListResponse } from "@/types";
 
 // 環境変数を読み込む。MICROCMS_API_KEY には絶対に NEXT_PUBLIC_ を付けないこと
 // （付けるとブラウザに公開され、誰でも管理 API を叩けてしまう）。
@@ -32,4 +32,24 @@ export async function getBlogDetail(
   queries?: MicroCMSQueries
 ): Promise<Blog> {
   return client.getListDetail<Blog>({ endpoint: "blogs", contentId, queries });
+}
+
+// お知らせ（news）の一覧を取得する。
+// 既定で publishedAt の降順（新しい順）に並べる。queries で上書きも可能。
+export async function getNewsList(
+  queries?: MicroCMSQueries
+): Promise<NewsListResponse> {
+  return client.getList<News>({
+    endpoint: "news",
+    queries: { orders: "-publishedAt", ...queries },
+  });
+}
+
+// お知らせ 1 件を ID 指定で取得する（詳細ページで使用）。
+// 存在しない ID の場合は SDK が例外を投げるため、呼び出し側で notFound() 等に変換する。
+export async function getNewsDetail(
+  contentId: string,
+  queries?: MicroCMSQueries
+): Promise<News> {
+  return client.getListDetail<News>({ endpoint: "news", contentId, queries });
 }

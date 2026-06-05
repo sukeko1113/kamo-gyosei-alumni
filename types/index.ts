@@ -55,3 +55,33 @@ export type BlogListResponse = {
   offset: number; // 取得開始位置
   limit: number; // 取得件数
 };
+
+// ----------------------------------------------------------------
+// microCMS（お知らせ / News）関連
+// ----------------------------------------------------------------
+
+// microCMS の画像フィールドが返す型（アイキャッチなどで共通利用）。
+export type MicroCMSImage = {
+  url: string; // 画像の URL
+  height: number; // 画像の高さ（px）
+  width: number; // 画像の幅（px）
+};
+
+// news エンドポイントのお知らせ 1 件分の型。
+// microCMS 管理画面のスキーマ（title / content / category / eyecatch）に対応する。
+export type News = MicroCMSBase & {
+  title: string; // タイトル（テキスト）
+  content: string; // 本文（リッチエディタの HTML 文字列）
+  // カテゴリ（セレクトフィールド・任意）。microCMS のセレクトは
+  // 単一選択でも文字列の配列で返ってくるため string[] とする。
+  category?: string[];
+  eyecatch?: MicroCMSImage; // アイキャッチ画像（任意）
+};
+
+// お知らせ一覧 API のレスポンス（microCMS のリスト形式）。
+export type NewsListResponse = {
+  contents: News[]; // お知らせの配列
+  totalCount: number; // 全件数
+  offset: number; // 取得開始位置
+  limit: number; // 取得件数
+};
