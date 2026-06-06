@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { getNewsList } from "@/lib/microcms";
-import { formatDateJa } from "@/lib/utils";
+import { formatJaDate } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -69,7 +69,7 @@ export default async function NewsListPage() {
                           news.createdAt
                         }
                       >
-                        {formatDateJa(
+                        {formatJaDate(
                           news.publishedDate ??
                             news.publishedAt ??
                             news.createdAt
