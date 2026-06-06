@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { getNewsDetail } from "@/lib/microcms";
-import { formatDateJa } from "@/lib/utils";
+import { formatJaDate } from "@/lib/utils";
 
 // ISR: 60 秒ごとに再生成する。microCMS で記事を更新すると、
 // 再デプロイなしで最大 60 秒後に詳細ページへ反映される。
@@ -63,7 +63,7 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
         <header className="mb-8">
           {/* 公開日（日本語表記） */}
           <p className="mb-3 text-base text-muted-foreground">
-            <time dateTime={publishedDate}>{formatDateJa(publishedDate)}</time>
+            <time dateTime={publishedDate}>{formatJaDate(publishedDate)}</time>
           </p>
           <h1 className="text-3xl font-bold leading-tight sm:text-4xl">
             {news.title}

@@ -1,5 +1,6 @@
 // トップページ。
-// お知らせ（news）の最新記事をサーバーサイドで取得して一覧表示する。
+// お知らせ（news）の最新記事をサーバーサイドで取得し、
+// 最新数件だけを「プレビュー」として表示する。全件は /news の一覧ページで見せる。
 // データ取得（getNewsList）はサーバーコンポーネントなので、そのまま await で呼べる。
 import Link from "next/link";
 import { HomeCta } from "@/components/home-cta";
@@ -11,9 +12,10 @@ import { formatJaDate } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  // サーバー側で最新のお知らせ一覧を取得する（最大10件・公開日の新しい順）。
+  // サーバー側で最新のお知らせを取得する（最新3件・公開日の新しい順）。
+  // トップは「プレビュー」なので少数だけ表示し、全件は /news へ誘導する。
   // getNewsList はリスト形式（contents 等）を返すため、必要な contents を取り出す。
-  const { contents: newsList } = await getNewsList({ limit: 10 });
+  const { contents: newsList } = await getNewsList({ limit: 3 });
 
   return (
     <main className="flex flex-1 flex-col items-center gap-10 p-8">
@@ -36,7 +38,7 @@ export default async function Home() {
           // 記事が1件もないときの表示。
           <p className="mt-4 text-base text-muted-foreground">お知らせはまだありません。</p>
         ) : (
-          // 記事一覧。掲載日とタイトル（リンク）を縦に並べる。
+          // 最新数件のプレビュー。掲載日とタイトル（リンク）を縦に並べる。
           <ul className="mt-4 flex flex-col divide-y divide-border rounded-lg border border-border">
             {newsList.map((news) => (
               <li key={news.id} className="p-4">
@@ -55,6 +57,17 @@ export default async function Home() {
             ))}
           </ul>
         )}
+
+        {/* 全件はお知らせ一覧ページ（/news）で確認できるよう導線を置く。 */}
+        <div className="mt-6 text-right">
+          <Link
+            href="/news"
+            className="inline-flex items-center gap-1 text-lg font-medium text-primary underline-offset-4 hover:underline"
+          >
+            お知らせ一覧へ
+            <span aria-hidden="true">→</span>
+          </Link>
+        </div>
       </section>
     </main>
   );

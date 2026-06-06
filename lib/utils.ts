@@ -9,21 +9,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// ISO 形式の日時文字列（例: microCMS の publishedAt）を
-// 日本語表記（例: 2026年6月5日）に整形して返す。
-// 日付がずれないよう、表示の基準は日本時間（Asia/Tokyo）に固定する。
-export function formatDateJa(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("ja-JP", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "Asia/Tokyo",
-  });
-}
-
 // 日付（ISO 文字列）を日本語の読みやすい形式に整える（例: 2026年6月3日）。
-// formatDateJa との違いは「値が無い・不正な場合に空文字を返す」点で、
-// 任意項目（publishedDate 等）をそのまま渡しても表示が崩れない。
+// 値が無い・不正な場合は空文字を返すため、任意項目（publishedDate 等）を
+// そのまま渡しても表示が崩れない。
+// 日付がずれないよう、表示の基準は日本時間（Asia/Tokyo）に固定する。
 export function formatJaDate(isoDate?: string): string {
   if (!isoDate) return "";
   const date = new Date(isoDate);
@@ -32,5 +21,6 @@ export function formatJaDate(isoDate?: string): string {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "Asia/Tokyo",
   }).format(date);
 }

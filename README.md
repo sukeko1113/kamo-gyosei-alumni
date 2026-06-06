@@ -20,7 +20,7 @@
 - Node.js 18.18 以上（推奨: 20 以上）
 - npm
 - Firebase プロジェクト（Authentication と Firestore を有効化）
-- microCMS のサービス（`blogs` API を作成）
+- microCMS のサービス（`news` API を作成）
 
 ## セットアップ手順
 
