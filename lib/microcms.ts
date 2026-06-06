@@ -3,7 +3,7 @@
 // ビルドエラーになる。API キーがブラウザに漏れるのを防ぐための安全装置。
 import "server-only";
 import { createClient, type MicroCMSQueries } from "microcms-js-sdk";
-import type { Blog, BlogListResponse, News } from "@/types";
+import type { Blog, BlogListResponse, News, NewsListResponse } from "@/types";
 
 // 環境変数を読み込む。MICROCMS_API_KEY には絶対に NEXT_PUBLIC_ を付けないこと
 // （付けるとブラウザに公開され、誰でも管理 API を叩けてしまう）。
@@ -38,15 +38,19 @@ export async function getBlogDetail(
 // お知らせ（news エンドポイント）
 // ----------------------------------------------------------------
 
-// お知らせの一覧を取得する（掲載日 publishedDate の新しい順、最大 10 件）。
-// orders に "-publishedDate" を指定すると降順（新しい順）になる。
-// 戻り値は記事の配列だけにして、呼び出し側（サーバーコンポーネント）で扱いやすくする。
-export async function getNewsList(): Promise<News[]> {
-  const res = await client.getList<News>({
+// お知らせの一覧を取得する。
+// 既定では publishedAt（システムの公開日時）の降順（新しい順）に並べる。
+// publishedAt は microCMS が必ず付与するため、並び順の基準として安全。
+// 件数や並び順を変えたい場合は queries で上書きできる
+//   例: getNewsList({ limit: 10 }) … トップページなど最新数件だけ欲しいとき
+// 戻り値は microCMS のリスト形式（contents / totalCount / offset / limit）。
+export async function getNewsList(
+  queries?: MicroCMSQueries
+): Promise<NewsListResponse> {
+  return client.getList<News>({
     endpoint: "news",
-    queries: { orders: "-publishedDate", limit: 10 },
+    queries: { orders: "-publishedAt", ...queries },
   });
-  return res.contents;
 }
 
 // お知らせ 1 件を ID 指定で取得する（記事詳細ページで使用）。

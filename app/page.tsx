@@ -11,8 +11,9 @@ import { formatJaDate } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  // サーバー側で最新のお知らせ一覧を取得する（最大10件・掲載日の新しい順）。
-  const newsList = await getNewsList();
+  // サーバー側で最新のお知らせ一覧を取得する（最大10件・公開日の新しい順）。
+  // getNewsList はリスト形式（contents 等）を返すため、必要な contents を取り出す。
+  const { contents: newsList } = await getNewsList({ limit: 10 });
 
   return (
     <main className="flex flex-1 flex-col items-center gap-10 p-8">

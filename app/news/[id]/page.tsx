@@ -1,63 +1,112 @@
-// お知らせ記事の詳細ページ（/news/[id]）。
-// URL の id を使って microCMS から記事 1 件をサーバーサイドで取得して表示する。
+// お知らせ詳細ページ（/news/[id]）。
+// 動的ルートの id を受け取り、該当するお知らせ 1 件を表示する。
+// サーバーコンポーネントのため API キーはブラウザに漏れない。
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
 import { getNewsDetail } from "@/lib/microcms";
-import { formatJaDate } from "@/lib/utils";
-import type { News } from "@/types";
+import { formatDateJa } from "@/lib/utils";
 
-// 毎回最新の内容を表示するため、動的レンダリングにする
-// （ビルド時に microCMS へアクセスしない）。
-export const dynamic = "force-dynamic";
+// ISR: 60 秒ごとに再生成する。microCMS で記事を更新すると、
+// 再デプロイなしで最大 60 秒後に詳細ページへ反映される。
+export const revalidate = 60;
 
-// Next.js 15 では params は Promise として渡ってくるので、await で取り出す。
-type PageProps = {
+// Next.js 15 では params は Promise で渡されるため await して取り出す。
+type NewsDetailPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export default async function NewsDetailPage({ params }: PageProps) {
-  const { id } = await params;
-
-  // 記事を取得する。存在しない id だと microCMS がエラーを投げるので、
-  // try/catch で受け止めて notFound()（404 ページ）に振り分ける。
-  let news: News;
+// 該当記事を取得する内部ヘルパー。存在しない id の場合は null を返す。
+// （microCMS SDK は 404 時に例外を投げるため、ここで握りつぶして null に変換する）
+async function fetchNews(id: string) {
   try {
-    news = await getNewsDetail(id);
+    return await getNewsDetail(id);
   } catch {
+    return null;
+  }
+}
+
+// ブラウザのタブやSNS共有時のタイトルを記事ごとに設定する。
+export async function generateMetadata({
+  params,
+}: NewsDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const news = await fetchNews(id);
+
+  if (!news) {
+    return { title: "お知らせが見つかりません | 加茂暁星高等学校 同窓会" };
+  }
+
+  return {
+    title: `${news.title} | 加茂暁星高等学校 同窓会`,
+  };
+}
+
+export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
+  const { id } = await params;
+  const news = await fetchNews(id);
+
+  // 該当する記事が無ければ 404 ページを表示する。
+  if (!news) {
     notFound();
   }
 
+  // 掲載日。任意の publishedDate を優先し、無ければシステムの publishedAt、
+  // それも無ければ作成日（createdAt）で代替する。
+  const publishedDate = news.publishedDate ?? news.publishedAt ?? news.createdAt;
+
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 p-8">
-      {/* 掲載日。publishedDate が無ければ自動付与の publishedAt で代用する。 */}
-      <p className="text-base text-muted-foreground">
-        {formatJaDate(news.publishedDate ?? news.publishedAt)}
-      </p>
+    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6">
+      <article>
+        <header className="mb-8">
+          {/* 公開日（日本語表記） */}
+          <p className="mb-3 text-base text-muted-foreground">
+            <time dateTime={publishedDate}>{formatDateJa(publishedDate)}</time>
+          </p>
+          <h1 className="text-3xl font-bold leading-tight sm:text-4xl">
+            {news.title}
+          </h1>
+          {news.category && news.category.length > 0 && (
+            <div className="mt-4">
+              <span className="inline-block rounded-full bg-secondary px-3 py-1 text-base text-secondary-foreground">
+                {news.category.join("・")}
+              </span>
+            </div>
+          )}
+        </header>
 
-      {/* タイトル */}
-      <h1 className="mt-2 text-3xl font-bold">{news.title}</h1>
+        {news.eyecatch && (
+          // アイキャッチ画像（ある場合のみ表示）。
+          // microCMS が幅・高さを返すため、それを使って正しい比率で表示する。
+          <Image
+            src={news.eyecatch.url}
+            alt=""
+            width={news.eyecatch.width}
+            height={news.eyecatch.height}
+            sizes="(max-width: 768px) 100vw, 768px"
+            className="mb-8 h-auto w-full rounded-xl"
+            priority
+          />
+        )}
 
-      {/*
-        本文の表示。
-        content はリッチエディタが生成した HTML 文字列なので、
-        通常の {news.content} ではタグがそのまま文字として表示されてしまう。
-        HTML として描画するには dangerouslySetInnerHTML を使う必要がある。
-        ※ この HTML は管理者が microCMS で作成した信頼できる内容に限られるため、
-          ここでは許容している（外部ユーザーの入力をそのまま表示する箇所では使わないこと）。
-        prose 系クラスは付けず、最低 16px（text-base）を満たす基本スタイルにしている。
-      */}
-      <div
-        className="mt-6 text-base leading-relaxed [&_a]:text-primary [&_a]:underline"
-        dangerouslySetInnerHTML={{ __html: news.content }}
-      />
+        {/* 本文（microCMS リッチエディタの HTML）。
+            microCMS は信頼できる管理元のため dangerouslySetInnerHTML を許容する。 */}
+        <div
+          className="news-content"
+          dangerouslySetInnerHTML={{ __html: news.content }}
+        />
+      </article>
 
-      {/* 一覧（トップページ）に戻るリンク。 */}
-      <div className="mt-10">
+      {/* 一覧へ戻るリンク */}
+      <div className="mt-12 border-t pt-8">
         <Link
-          href="/"
-          className="text-base text-primary underline-offset-4 hover:underline"
+          href="/news"
+          className="inline-flex items-center gap-1 text-lg font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          ← お知らせ一覧に戻る
+          <span aria-hidden="true">←</span>
+          お知らせ一覧へ戻る
         </Link>
       </div>
     </main>

@@ -99,3 +99,60 @@
     font-size: 1rem;
   }
 }
+
+/* ----------------------------------------------------------------
+   お知らせ詳細ページの本文（microCMS リッチエディタの HTML）用スタイル。
+   Tailwind の preflight が見出し・リストの余白を消すため、
+   ここで読みやすい余白・サイズを復元する。
+   高齢の利用者向けに本文は 18px（text-lg 相当）・行間ゆったりめにする。
+   ---------------------------------------------------------------- */
+.news-content {
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.9;
+}
+.news-content > * + * {
+  margin-top: 1.25em;
+}
+.news-content h2 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 700;
+  line-height: 1.4;
+  margin-top: 2em;
+}
+.news-content h3 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 700;
+  line-height: 1.4;
+  margin-top: 1.75em;
+}
+.news-content ul,
+.news-content ol {
+  padding-left: 1.5em;
+}
+.news-content ul {
+  list-style: disc;
+}
+.news-content ol {
+  list-style: decimal;
+}
+.news-content li + li {
+  margin-top: 0.5em;
+}
+.news-content a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.news-content img {
+  height: auto;
+  max-width: 100%;
+  border-radius: var(--radius);
+}
+.news-content blockquote {
+  border-left: 4px solid var(--border);
+  padding-left: 1em;
+  color: var(--muted-foreground);
+}
+.news-content strong {
+  font-weight: 700;
+}
