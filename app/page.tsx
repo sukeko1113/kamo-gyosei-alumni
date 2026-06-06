@@ -4,6 +4,7 @@
 // データ取得（getNewsList）はサーバーコンポーネントなので、そのまま await で呼べる。
 import Link from "next/link";
 import { HomeCta } from "@/components/home-cta";
+import { Button } from "@/components/ui/button";
 import { getNewsList } from "@/lib/microcms";
 import { formatJaDate } from "@/lib/utils";
 
@@ -26,8 +27,15 @@ export default async function Home() {
           当ウェブサイトは現在準備中です。
           卒業生のみなさまに役立つ情報を順次公開してまいります。
         </p>
-        {/* 未ログインなら「ログイン」、ログイン済みなら「マイページ」を表示する */}
-        <HomeCta />
+        {/* ログイン導線と寄付導線を横並び（スマホでは縦並び）で表示する */}
+        <div className="flex flex-col gap-3 sm:flex-row">
+          {/* 未ログインなら「ログイン」、ログイン済みなら「マイページ」を表示する */}
+          <HomeCta />
+          {/* 寄付ページへの導線（ログインの有無に関わらず誰でも利用できる） */}
+          <Button size="lg" variant="outline" asChild>
+            <Link href="/donate">寄付する</Link>
+          </Button>
+        </div>
       </section>
 
       {/* お知らせ一覧（ログインの有無に関わらず誰でも閲覧できる公開情報） */}
