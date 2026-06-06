@@ -53,7 +53,9 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
     notFound();
   }
 
-  const publishedDate = news.publishedAt ?? news.createdAt;
+  // 掲載日。任意の publishedDate を優先し、無ければシステムの publishedAt、
+  // それも無ければ作成日（createdAt）で代替する。
+  const publishedDate = news.publishedDate ?? news.publishedAt ?? news.createdAt;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6">

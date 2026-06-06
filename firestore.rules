@@ -1,0 +1,36 @@
+rules_version = '2';
+
+// Cloud Firestore のセキュリティルール。
+// データベースへのアクセスは、デフォルトですべて拒否し、
+// 明示的に許可した条件だけを通す（ホワイトリスト方式）。
+// このファイルは Firebase コンソール、または `firebase deploy --only firestore:rules`
+// で公開して初めて有効になる（このリポジトリに置くだけでは反映されない）。
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // users コレクション：会員プロフィール。
+    // ドキュメントID は uid（ログインユーザーの Firebase UID）。
+    match /users/{userId} {
+      // 本人（ログイン中の uid と、ドキュメントID が一致する）だけが読める・作成できる。
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // 更新：本人のみ。かつ role を書き換えられないようにする。
+      //   request.resource.data … 更新後のドキュメント全体
+      //   resource.data          … 更新前のドキュメント全体
+      // 更新前後で role が同じであることを必須にすることで、
+      // クライアントからの権限昇格（role の改ざん）を防ぐ。
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.role == resource.data.role;
+
+      // 削除はクライアントからは禁止（write を read/create/update に分割したため
+      // delete は自動的に拒否される）。
+    }
+
+    // 上記で明示的に許可していないすべてのアクセスは拒否する。
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

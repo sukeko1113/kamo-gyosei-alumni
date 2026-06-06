@@ -59,10 +59,21 @@ export default async function NewsListPage() {
                     </div>
                   )}
                   <CardHeader className={news.eyecatch ? "pt-6" : undefined}>
-                    {/* 公開日（日本語表記）。publishedAt が無ければ作成日で代替。 */}
+                    {/* 公開日（日本語表記）。掲載日 publishedDate を優先し、
+                        無ければ publishedAt、それも無ければ作成日で代替する。 */}
                     <CardDescription>
-                      <time dateTime={news.publishedAt ?? news.createdAt}>
-                        {formatDateJa(news.publishedAt ?? news.createdAt)}
+                      <time
+                        dateTime={
+                          news.publishedDate ??
+                          news.publishedAt ??
+                          news.createdAt
+                        }
+                      >
+                        {formatDateJa(
+                          news.publishedDate ??
+                            news.publishedAt ??
+                            news.createdAt
+                        )}
                       </time>
                     </CardDescription>
                     <CardTitle className="text-xl sm:text-2xl">

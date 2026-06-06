@@ -20,3 +20,17 @@ export function formatDateJa(dateString: string): string {
     timeZone: "Asia/Tokyo",
   });
 }
+
+// 日付（ISO 文字列）を日本語の読みやすい形式に整える（例: 2026年6月3日）。
+// formatDateJa との違いは「値が無い・不正な場合に空文字を返す」点で、
+// 任意項目（publishedDate 等）をそのまま渡しても表示が崩れない。
+export function formatJaDate(isoDate?: string): string {
+  if (!isoDate) return "";
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return ""; // 不正な日付なら空文字。
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+}

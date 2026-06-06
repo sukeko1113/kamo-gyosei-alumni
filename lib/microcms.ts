@@ -34,8 +34,16 @@ export async function getBlogDetail(
   return client.getListDetail<Blog>({ endpoint: "blogs", contentId, queries });
 }
 
-// お知らせ（news）の一覧を取得する。
-// 既定で publishedAt の降順（新しい順）に並べる。queries で上書きも可能。
+// ----------------------------------------------------------------
+// お知らせ（news エンドポイント）
+// ----------------------------------------------------------------
+
+// お知らせの一覧を取得する。
+// 既定では publishedAt（システムの公開日時）の降順（新しい順）に並べる。
+// publishedAt は microCMS が必ず付与するため、並び順の基準として安全。
+// 件数や並び順を変えたい場合は queries で上書きできる
+//   例: getNewsList({ limit: 10 }) … トップページなど最新数件だけ欲しいとき
+// 戻り値は microCMS のリスト形式（contents / totalCount / offset / limit）。
 export async function getNewsList(
   queries?: MicroCMSQueries
 ): Promise<NewsListResponse> {
@@ -45,8 +53,9 @@ export async function getNewsList(
   });
 }
 
-// お知らせ 1 件を ID 指定で取得する（詳細ページで使用）。
-// 存在しない ID の場合は SDK が例外を投げるため、呼び出し側で notFound() 等に変換する。
+// お知らせ 1 件を ID 指定で取得する（記事詳細ページで使用）。
+// 存在しない ID の場合、microCMS SDK はエラーを投げるため、呼び出し側で
+// try/catch して notFound()（404）に振り分ける。
 export async function getNewsDetail(
   contentId: string,
   queries?: MicroCMSQueries
