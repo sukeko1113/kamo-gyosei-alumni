@@ -13,6 +13,29 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ------------------------------------------------------------
+    // 会員プロフィール: users コレクション（Phase 1）
+    // ドキュメント ID は Firebase Authentication の uid。
+    // ------------------------------------------------------------
+    match /users/{userId} {
+
+      // ログイン中の本人（uid とドキュメント ID が一致）かどうか。
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      // 読み取り・作成は本人のみ。
+      allow read: if isOwner();
+      allow create: if isOwner();
+
+      // 更新は本人のみ。かつ role は変更不可（改ざん防止）。
+      allow update: if isOwner() &&
+                       request.resource.data.role == resource.data.role;
+
+      // 削除はクライアントから不可。
+      allow delete: if false;
+    }
+
+    // ------------------------------------------------------------
     // 署名（嘆願）: petitions コレクション
     // ------------------------------------------------------------
     match /petitions/{petitionId} {
