@@ -1,15 +1,17 @@
 // shadcn/ui の Card コンポーネント。
-// 趣旨説明・署名状況・賛同コメントなどを囲うカード UI に使う。
+// 「コピー＆ペースト方式」のため、このファイル自体がプロジェクトの一部として管理される。
+// Card / CardHeader / CardTitle などを組み合わせてカード型 UI を作る。
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+// カードの外枠。角丸・枠線・背景色をまとめて持つ。
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
       className={cn(
-        "rounded-xl border bg-card text-card-foreground shadow-sm",
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
         className
       )}
       {...props}
@@ -17,51 +19,52 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+// カード上部の見出し領域。
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-header"
-      className={cn("flex flex-col gap-1.5 p-6", className)}
+      className={cn("flex flex-col gap-1.5 px-6", className)}
       {...props}
     />
   );
 }
 
+// カードのタイトル。高齢の利用者向けに十分な大きさを確保する。
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("text-xl font-semibold leading-tight", className)}
+      className={cn("font-semibold leading-snug", className)}
       {...props}
     />
   );
 }
 
+// タイトル下の補足テキスト（説明・日付など）。
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-base text-muted-foreground", className)}
+      className={cn("text-muted-foreground text-base", className)}
       {...props}
     />
   );
 }
 
+// カードの本文領域。
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      data-slot="card-content"
-      className={cn("p-6 pt-0", className)}
-      {...props}
-    />
+    <div data-slot="card-content" className={cn("px-6", className)} {...props} />
   );
 }
 
+// カード下部のフッター領域（操作ボタンなどを置く）。
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-footer"
-      className={cn("flex items-center p-6 pt-0", className)}
+      className={cn("flex items-center px-6", className)}
       {...props}
     />
   );

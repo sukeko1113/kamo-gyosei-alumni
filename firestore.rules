@@ -1,12 +1,13 @@
 rules_version = '2';
 
-// Cloud Firestore セキュリティルール。
-//
-// 基本方針: 「すべて拒否（deny-all）」を土台にし、必要な操作だけを
-// コレクションごとに明示的に許可する。許可を書き忘れたものは届かない＝安全側に倒れる。
+// Cloud Firestore のセキュリティルール。
+// データベースへのアクセスは、デフォルトですべて拒否し（deny-all）、
+// 明示的に許可した条件だけを通す（ホワイトリスト方式）。
+// このファイルは Firebase コンソール、または `firebase deploy --only firestore:rules`
+// で公開して初めて有効になる（このリポジトリに置くだけでは反映されない）。
 //
 // ※ サーバー（Firebase Admin SDK / サービスアカウント）からのアクセスは
-//    これらのルールをバイパスする。本サイトでは署名の読み取り・作成は
+//    これらのルールをバイパスする。署名（petitions）の読み取り・作成は
 //    サーバー側（Admin SDK）で行うため、ここでのクライアント向けルールは
 //    「万一クライアントから直接アクセスされた場合の保険（多層防御）」として機能する。
 service cloud.firestore {
@@ -14,25 +15,24 @@ service cloud.firestore {
 
     // ------------------------------------------------------------
     // 会員プロフィール: users コレクション（Phase 1）
-    // ドキュメント ID は Firebase Authentication の uid。
+    // ドキュメントID は uid（ログインユーザーの Firebase UID）。
     // ------------------------------------------------------------
     match /users/{userId} {
+      // 本人（ログイン中の uid と、ドキュメントID が一致する）だけが読める・作成できる。
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
 
-      // ログイン中の本人（uid とドキュメント ID が一致）かどうか。
-      function isOwner() {
-        return request.auth != null && request.auth.uid == userId;
-      }
+      // 更新：本人のみ。かつ role を書き換えられないようにする。
+      //   request.resource.data … 更新後のドキュメント全体
+      //   resource.data          … 更新前のドキュメント全体
+      // 更新前後で role が同じであることを必須にすることで、
+      // クライアントからの権限昇格（role の改ざん）を防ぐ。
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.role == resource.data.role;
 
-      // 読み取り・作成は本人のみ。
-      allow read: if isOwner();
-      allow create: if isOwner();
-
-      // 更新は本人のみ。かつ role は変更不可（改ざん防止）。
-      allow update: if isOwner() &&
-                       request.resource.data.role == resource.data.role;
-
-      // 削除はクライアントから不可。
-      allow delete: if false;
+      // 削除はクライアントからは禁止（write を read/create/update に分割したため
+      // delete は自動的に拒否される）。
     }
 
     // ------------------------------------------------------------
@@ -75,7 +75,7 @@ service cloud.firestore {
     }
 
     // ------------------------------------------------------------
-    // 上記以外はすべて拒否（deny-all）。
+    // 上記で明示的に許可していないすべてのアクセスは拒否する（deny-all）。
     // 新しいコレクションを許可する場合は、必ず個別の match で明示すること。
     // ------------------------------------------------------------
     match /{document=**} {
