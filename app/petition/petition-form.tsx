@@ -3,6 +3,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,7 @@ import {
 const NO_ROLE = "__none__";
 
 export function PetitionForm() {
+  const router = useRouter();
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [role, setRole] = React.useState<string>(NO_ROLE);
@@ -75,6 +77,10 @@ export function PetitionForm() {
 
       if (res.ok) {
         setDone(true);
+        // サーバーコンポーネント（署名状況: 総数・公開賛同者一覧）を再取得・再描画する。
+        // done などのクライアント状態は保持されるため、完了表示を出しつつ
+        // 同一ページ上部の署名状況だけが最新化される（手動リロード不要）。
+        router.refresh();
         return;
       }
 
