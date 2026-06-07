@@ -1,15 +1,22 @@
 rules_version = '2';
 
 // Cloud Firestore のセキュリティルール。
-// データベースへのアクセスは、デフォルトですべて拒否し、
+// データベースへのアクセスは、デフォルトですべて拒否し（deny-all）、
 // 明示的に許可した条件だけを通す（ホワイトリスト方式）。
 // このファイルは Firebase コンソール、または `firebase deploy --only firestore:rules`
 // で公開して初めて有効になる（このリポジトリに置くだけでは反映されない）。
+//
+// ※ サーバー（Firebase Admin SDK / サービスアカウント）からのアクセスは
+//    これらのルールをバイパスする。署名（petitions）の読み取り・作成は
+//    サーバー側（Admin SDK）で行うため、ここでのクライアント向けルールは
+//    「万一クライアントから直接アクセスされた場合の保険（多層防御）」として機能する。
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // users コレクション：会員プロフィール。
+    // ------------------------------------------------------------
+    // 会員プロフィール: users コレクション（Phase 1）
     // ドキュメントID は uid（ログインユーザーの Firebase UID）。
+    // ------------------------------------------------------------
     match /users/{userId} {
       // 本人（ログイン中の uid と、ドキュメントID が一致する）だけが読める・作成できる。
       allow read: if request.auth != null && request.auth.uid == userId;
@@ -28,7 +35,49 @@ service cloud.firestore {
       // delete は自動的に拒否される）。
     }
 
-    // 上記で明示的に許可していないすべてのアクセスは拒否する。
+    // ------------------------------------------------------------
+    // 署名（嘆願）: petitions コレクション
+    // ------------------------------------------------------------
+    match /petitions/{petitionId} {
+
+      // 立場（role）として許可する値。空文字（未選択）も許可する。
+      function isValidRole(role) {
+        return role == '' ||
+               role in ['卒業生', '保護者', '在校生', '教職員', '地域住民', 'その他'];
+      }
+
+      // 作成データのバリデーション。
+      // - name / email は空でない文字列
+      // - role は許可値のいずれか、または空文字
+      // - isPublic は真偽値
+      // - createdAt はサーバータイムスタンプ（= リクエスト時刻）であること
+      // - 想定外のフィールドを含めない
+      function isValidNewSignature() {
+        let data = request.resource.data;
+        return data.keys().hasOnly(['name', 'email', 'role', 'comment', 'isPublic', 'createdAt']) &&
+               data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+               data.email is string && data.email.size() > 0 && data.email.size() <= 254 &&
+               isValidRole(data.role) &&
+               (!('comment' in data) || data.comment is string) &&
+               data.isPublic is bool &&
+               data.createdAt == request.time;
+      }
+
+      // 作成（create）は未ログインを含め誰でも可。ただし上記バリデーションを満たすこと。
+      allow create: if isValidNewSignature();
+
+      // 読み取り（read）はクライアントから一切不可。
+      // email など個人情報を含むため、集計・公開分の取得はサーバー側のみで行う。
+      allow read: if false;
+
+      // 更新・削除はクライアントから不可。
+      allow update, delete: if false;
+    }
+
+    // ------------------------------------------------------------
+    // 上記で明示的に許可していないすべてのアクセスは拒否する（deny-all）。
+    // 新しいコレクションを許可する場合は、必ず個別の match で明示すること。
+    // ------------------------------------------------------------
     match /{document=**} {
       allow read, write: if false;
     }

@@ -27,13 +27,17 @@ export default async function Home() {
           当ウェブサイトは現在準備中です。
           卒業生のみなさまに役立つ情報を順次公開してまいります。
         </p>
-        {/* ログイン導線と寄付導線を横並び（スマホでは縦並び）で表示する */}
+        {/* ログイン・寄付・署名の導線を横並び（スマホでは縦並び）で表示する */}
         <div className="flex flex-col gap-3 sm:flex-row">
           {/* 未ログインなら「ログイン」、ログイン済みなら「マイページ」を表示する */}
           <HomeCta />
           {/* 寄付ページへの導線（ログインの有無に関わらず誰でも利用できる） */}
           <Button size="lg" variant="outline" asChild>
             <Link href="/donate">寄付する</Link>
+          </Button>
+          {/* 校舎の耐震化を求める署名ページへの導線（会員登録不要・誰でも署名できる） */}
+          <Button size="lg" variant="outline" asChild>
+            <Link href="/petition">署名する</Link>
           </Button>
         </div>
       </section>
