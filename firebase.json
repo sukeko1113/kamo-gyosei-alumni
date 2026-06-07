@@ -1,0 +1,6 @@
+{
+  "//": "Firestore セキュリティルールのデプロイ設定。firebase deploy --only firestore:rules で反映する。",
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}
