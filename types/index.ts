@@ -24,8 +24,41 @@ export type User = {
   clubActivity?: string; // 当時の部活動・クラスなど
   contactEmail?: string; // 連絡用メール（Google アカウントとは別にしたい人向け）
 
+  // 卒業生名簿への掲載可否（本人のオプトイン）。
+  // true のときだけ /directory（卒業生名簿）に氏名などが掲載される。
+  // 既定は false（未設定も非掲載とみなす）。連絡先メールは掲載対象に含めない。
+  isListedInDirectory?: boolean;
+
   createdAt?: unknown; // 登録日時（Firestore の serverTimestamp で記録）
   updatedAt?: unknown; // 最終更新日時（Firestore の serverTimestamp で記録）
+};
+
+// ----------------------------------------------------------------
+// 卒業生名簿（directory）関連
+// ----------------------------------------------------------------
+
+// 名簿に掲載する1人分のデータ。
+// ★ 連絡先メール（contactEmail）や Google アカウントのメール（email）は
+//    一切含めない。サーバー側（Admin SDK）でこの形に詰め替えてから返す。
+export type DirectoryMember = {
+  uid: string; // 会員の Firebase UID（一覧の key などに使う）
+  displayName: string; // 氏名（表示名）
+  furigana: string; // 氏名のふりがな
+  maidenName: string; // 旧姓
+  graduationYear: number | null; // 卒業年次（未設定は null）
+  clubActivity: string; // 当時の部活動・クラスなど
+};
+
+// 卒業年次ごとにまとめた名簿の1グループ。
+export type DirectoryGroup = {
+  graduationYear: number | null; // この組の卒業年次（null は「卒業年未設定」）
+  members: DirectoryMember[]; // 該当する会員（ふりがな順）
+};
+
+// 名簿ページに表示するためのデータ（サーバー側で組み立てる）。
+export type DirectoryData = {
+  totalCount: number; // 掲載されている会員の総数
+  groups: DirectoryGroup[]; // 卒業年次ごとのグループ（新しい年が先）
 };
 
 // ----------------------------------------------------------------

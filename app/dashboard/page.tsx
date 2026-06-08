@@ -135,6 +135,16 @@ export default function DashboardPage() {
             <dt className="w-40 shrink-0 text-base font-medium">連絡用メール</dt>
             <dd className="text-base">{show(profile?.contactEmail)}</dd>
           </div>
+          <div className="flex flex-col gap-1 p-4 sm:flex-row sm:gap-4">
+            <dt className="w-40 shrink-0 text-base font-medium">卒業生名簿への公開</dt>
+            <dd className="text-base">
+              {profile?.isListedInDirectory ? (
+                "公開中"
+              ) : (
+                <span className="text-muted-foreground">非公開</span>
+              )}
+            </dd>
+          </div>
         </dl>
       </section>
 
@@ -143,6 +153,9 @@ export default function DashboardPage() {
         {/* Button を Link として使い、編集ページへ遷移する。 */}
         <Button size="lg" asChild>
           <Link href="/profile/edit">プロフィールを編集</Link>
+        </Button>
+        <Button variant="outline" size="lg" asChild>
+          <Link href="/directory">卒業生名簿を見る</Link>
         </Button>
         <Button variant="outline" size="lg" onClick={handleLogout}>
           ログアウト

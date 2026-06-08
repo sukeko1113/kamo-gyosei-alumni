@@ -15,6 +15,7 @@ import {
   type App,
 } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
+import { getAuth, type Auth } from "firebase-admin/auth";
 
 // サービスアカウントの認証情報は環境変数から読み込む（秘密情報なので絶対に直書きしない）。
 // - FIREBASE_ADMIN_PROJECT_ID  : プロジェクト ID
@@ -53,4 +54,11 @@ function getAdminApp(): App {
 // import しただけでエラーにならないようにする。
 export function getAdminDb(): Firestore {
   return getFirestore(getAdminApp());
+}
+
+// Authentication（Admin）。クライアントから送られた Firebase ID トークンを
+// サーバー側で検証する（verifyIdToken）ために使う。
+// 名簿などログイン必須の API で「本当にログイン済みの会員か」を確認する。
+export function getAdminAuth(): Auth {
+  return getAuth(getAdminApp());
 }

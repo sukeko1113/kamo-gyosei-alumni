@@ -14,6 +14,7 @@ import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // フォームの入力値はすべて文字列で保持する（数値の graduationYear も入力中は文字列）。
 // こうすると「空欄」と「0」を区別でき、入力途中の表示も扱いやすい。
@@ -40,6 +41,8 @@ export default function ProfileEditPage() {
 
   // フォームの入力値。
   const [form, setForm] = useState<FormValues>(EMPTY_FORM);
+  // 卒業生名簿への掲載可否（オプトイン）。文字列ではなく真偽値で扱うため別管理にする。
+  const [isListedInDirectory, setIsListedInDirectory] = useState(false);
   // Firestore からの初期データ読み込み中かどうか。
   const [loadingDoc, setLoadingDoc] = useState(true);
   // 保存処理中かどうか（ボタンの二重押し防止に使う）。
@@ -78,6 +81,8 @@ export default function ProfileEditPage() {
           clubActivity: data.clubActivity ?? "",
           contactEmail: data.contactEmail ?? "",
         });
+        // 名簿掲載フラグ（未設定は false 扱い）。
+        setIsListedInDirectory(data.isListedInDirectory === true);
       } catch (err) {
         console.error("プロフィールの読み込みに失敗しました", err);
         if (active) {
@@ -129,6 +134,7 @@ export default function ProfileEditPage() {
         furigana: form.furigana.trim(),
         clubActivity: form.clubActivity.trim(),
         contactEmail: form.contactEmail.trim(),
+        isListedInDirectory, // 卒業生名簿への掲載可否（true のときだけ掲載される）
         updatedAt: serverTimestamp(), // サーバー側の時刻で更新日時を記録。
       };
 
@@ -235,6 +241,29 @@ export default function ProfileEditPage() {
           <p className="text-base text-muted-foreground">
             Google アカウントとは別の連絡先を使いたい場合に入力してください。
           </p>
+        </div>
+
+        {/* 卒業生名簿への掲載可否（オプトイン・デフォルト off） */}
+        <div className="flex items-start gap-3 rounded-md border border-input p-4">
+          <Checkbox
+            id="isListedInDirectory"
+            checked={isListedInDirectory}
+            onCheckedChange={(v) => setIsListedInDirectory(v === true)}
+            disabled={saving}
+            className="mt-0.5"
+          />
+          <Label
+            htmlFor="isListedInDirectory"
+            className="cursor-pointer font-normal leading-relaxed"
+          >
+            卒業生名簿に公開する
+            <span className="block text-base text-muted-foreground">
+              ※ オンにすると、ログインした他の会員が見られる卒業生名簿に、
+              あなたの氏名・ふりがな・旧姓・卒業年次・部活動が掲載されます。
+              <strong>連絡先メールアドレスは掲載されません。</strong>
+              オフにすればいつでも掲載をやめられます。
+            </span>
+          </Label>
         </div>
 
         {/* 保存結果のメッセージ。成功は通常色、失敗は赤で表示する。 */}
