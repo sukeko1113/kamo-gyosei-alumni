@@ -149,3 +149,26 @@ export type PetitionSummary = {
   totalCount: number; // 署名総数
   publicSignatures: PetitionPublicSignature[]; // 公開可の賛同者一覧
 };
+
+// ----------------------------------------------------------------
+// 署名の管理（運営者専用）関連
+// ----------------------------------------------------------------
+
+// 管理画面で運営者が閲覧する1署名分のデータ。
+// ★ email を含む全項目を持つため、サーバー側で管理者と確認できたときだけ返す。
+//   （一般会員・未ログインには絶対に渡さない）
+export type PetitionAdminRow = {
+  id: string; // Firestore ドキュメントID（一覧の key などに使う）
+  name: string; // 氏名
+  email: string; // メールアドレス（非公開・管理者のみ閲覧可）
+  role: PetitionRole | ""; // 立場（未選択は空文字）
+  comment: string; // 賛同コメント
+  isPublic: boolean; // 氏名・コメントの公開可否
+  createdAt: string | null; // 署名日時（ISO 文字列）。未確定のときは null。
+};
+
+// 管理画面に返す署名一覧（総数 + 全署名）。
+export type PetitionAdminList = {
+  totalCount: number; // 署名総数
+  signatures: PetitionAdminRow[]; // 全署名（新しい順）
+};

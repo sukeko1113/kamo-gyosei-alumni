@@ -3,10 +3,12 @@
 // 「総数」「公開可の署名」だけを安全に取得する。新規署名の作成もここで行う。
 import "server-only";
 
-import { FieldValue, type Firestore } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, type Firestore } from "firebase-admin/firestore";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import type {
+  PetitionAdminList,
+  PetitionAdminRow,
   PetitionInput,
   PetitionPublicSignature,
   PetitionSummary,
@@ -48,6 +50,43 @@ export async function getPetitionSummary(): Promise<PetitionSummary> {
   );
 
   return { totalCount, publicSignatures };
+}
+
+// 全署名を取得する（★運営者専用★）。
+// email を含む全項目を返すため、呼び出し側で「管理者であること」を
+// verifyIdToken + ADMIN_EMAILS で確認した後でのみ使うこと。
+// 並び順は署名日時の新しい順。
+export async function getAllSignatures(): Promise<PetitionAdminList> {
+  const db = getAdminDb();
+
+  // createdAt の降順（新しい順）で全件取得する。
+  const snap = await db
+    .collection(COLLECTION)
+    .orderBy("createdAt", "desc")
+    .get();
+
+  const signatures: PetitionAdminRow[] = snap.docs.map((doc) => {
+    const data = doc.data();
+
+    // createdAt は Firestore の Timestamp。そのままでは JSON 化できないため、
+    // ISO 文字列に変換する（まだ確定していない場合は null）。
+    const createdAt =
+      data.createdAt instanceof Timestamp
+        ? data.createdAt.toDate().toISOString()
+        : null;
+
+    return {
+      id: doc.id,
+      name: typeof data.name === "string" ? data.name : "",
+      email: typeof data.email === "string" ? data.email : "",
+      role: data.role ?? "",
+      comment: typeof data.comment === "string" ? data.comment : "",
+      isPublic: data.isPublic === true,
+      createdAt,
+    };
+  });
+
+  return { totalCount: signatures.length, signatures };
 }
 
 // 同じメールアドレスでの署名が既に存在するか確認する。
