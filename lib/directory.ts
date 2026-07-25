@@ -11,11 +11,38 @@
 // - これにより users の read ルールは「本人のみ」のまま維持できる。
 import "server-only";
 
+import { FieldPath } from "firebase-admin/firestore";
+
 import { getAdminDb } from "@/lib/firebase-admin";
 import type { DirectoryData, DirectoryGroup, DirectoryMember } from "@/types";
 
 // Firestore のコレクション名。
 const COLLECTION = "users";
+
+// 閲覧者が「プロフィール登録済み」かどうかをサーバー側で判定する（★サーバー専用★）。
+//
+// ★ 判定基準 ★
+// - users/{uid} はログイン時に ensureUserDocument() で自動生成されるため、
+//   「ドキュメントの有無」では「ログインしただけ」と「プロフィール登録済み」を
+//   区別できない（ログインした全員が doc を持つ）。
+// - updatedAt は /profile/edit での保存時にしか書き込まれない（自動生成では付かない）。
+//   そのため updatedAt の有無が「プロフィール登録を一度でも行ったか」を正確に表す。
+// - メール等の非公開情報を読み出さないよう .select("updatedAt") で対象を絞る（多層防御）。
+export async function isUserRegistered(uid: string): Promise<boolean> {
+  const db = getAdminDb();
+
+  // ドキュメントID 一致 + updatedAt のみ取得するクエリ（他フィールドは転送しない）。
+  const snap = await db
+    .collection(COLLECTION)
+    .where(FieldPath.documentId(), "==", uid)
+    .select("updatedAt")
+    .limit(1)
+    .get();
+
+  if (snap.empty) return false; // doc 自体が無い（通常はログインで作られる）。
+  // updatedAt が存在すれば、プロフィールを一度でも保存した＝登録済みとみなす。
+  return snap.docs[0].get("updatedAt") != null;
+}
 
 // 名簿に表示する会員一覧を取得し、卒業年次ごとにグループ化して返す。
 // 連絡先メール（contactEmail / email）は .select() の対象に含めないため、

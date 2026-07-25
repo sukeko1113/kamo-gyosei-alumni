@@ -32,6 +32,8 @@ export default function DirectoryPage() {
   const [loadingData, setLoadingData] = useState(true);
   // 取得に失敗したときのメッセージ。
   const [error, setError] = useState<string | null>(null);
+  // 閲覧にはプロフィール登録が必要（サーバーが 403 PROFILE_REQUIRED を返した）状態。
+  const [needsProfile, setNeedsProfile] = useState(false);
 
   // --- 認証チェック：未ログインならログインページへ送る ---
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function DirectoryPage() {
     if (!user) return;
     setLoadingData(true);
     setError(null);
+    setNeedsProfile(false);
     try {
       // ログイン中ユーザーの ID トークンを取得し、サーバーで本人確認に使う。
       const token = await user.getIdToken();
@@ -53,8 +56,14 @@ export default function DirectoryPage() {
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as
-          | { error?: string }
+          | { error?: string; code?: string }
           | null;
+        // 未登録（プロフィール登録が必要）の場合は、専用の案内表示に切り替える。
+        if (res.status === 403 && body?.code === "PROFILE_REQUIRED") {
+          setData(null);
+          setNeedsProfile(true);
+          return;
+        }
         throw new Error(body?.error ?? "名簿の取得に失敗しました。");
       }
       const json = (await res.json()) as DirectoryData;
@@ -122,8 +131,29 @@ export default function DirectoryPage() {
           </Card>
         )}
 
+        {/* 未登録時：名簿は表示せず、プロフィール登録への導線を出す。 */}
+        {needsProfile && (
+          <Card>
+            <CardContent className="flex flex-col items-start gap-4 py-8">
+              <div className="flex flex-col gap-2">
+                <p className="text-lg font-semibold">
+                  閲覧するにはプロフィール登録が必要です
+                </p>
+                <p className="text-base leading-relaxed text-muted-foreground">
+                  卒業生名簿は、ご自身もプロフィールを登録された会員の方に限り
+                  閲覧いただけます。プロフィールの登録・保存後に、あらためて
+                  名簿をご覧ください。
+                </p>
+              </div>
+              <Button asChild size="lg">
+                <Link href="/profile/edit">プロフィールを登録する</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* 名簿本体 */}
-        {data && !error && (
+        {data && !error && !needsProfile && (
           <>
             <p className="text-base text-muted-foreground">
               現在の掲載人数：
