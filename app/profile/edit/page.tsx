@@ -50,9 +50,12 @@ const EMPTY_FORM: FormValues = {
   contactEmail: "",
 };
 
-// 生年の入力範囲（卒業年の計算補助にのみ使用。保存はしない）。
+// 年の入力範囲。非現実的な値（マイナス・未来など）を防ぐために使う。
+// 生年月は卒業年の計算補助にのみ使用（保存はしない）。
 const CURRENT_YEAR = new Date().getFullYear();
 const MIN_BIRTH_YEAR = 1920;
+// 卒業年次の許容範囲（学校の創立が大正9年＝1920年のため下限は 1920）。
+const MIN_GRADUATION_YEAR = 1920;
 
 export default function ProfileEditPage() {
   const router = useRouter();
@@ -205,6 +208,14 @@ export default function ProfileEditPage() {
       setMessage({
         type: "error",
         text: "卒業年次は西暦（数字のみ）で入力してください。",
+      });
+      return;
+    }
+    // 非現実的な卒業年（マイナス・未来など）は保存前に弾く。
+    if (graduationYear < MIN_GRADUATION_YEAR || graduationYear > CURRENT_YEAR) {
+      setMessage({
+        type: "error",
+        text: `卒業年次は西暦（${MIN_GRADUATION_YEAR}〜${CURRENT_YEAR}）で入力してください。`,
       });
       return;
     }
@@ -380,6 +391,9 @@ export default function ProfileEditPage() {
             name="graduationYear"
             type="number"
             inputMode="numeric"
+            min={MIN_GRADUATION_YEAR}
+            max={CURRENT_YEAR}
+            step={1}
             placeholder="例：1980"
             value={form.graduationYear}
             onChange={handleChange("graduationYear")}
@@ -398,6 +412,9 @@ export default function ProfileEditPage() {
                   id="birthYear"
                   type="number"
                   inputMode="numeric"
+                  min={MIN_BIRTH_YEAR}
+                  max={CURRENT_YEAR}
+                  step={1}
                   placeholder="例：1962"
                   value={birthYear}
                   onChange={(e) => setBirthYear(e.target.value)}
@@ -411,6 +428,9 @@ export default function ProfileEditPage() {
                   id="birthMonth"
                   type="number"
                   inputMode="numeric"
+                  min={1}
+                  max={12}
+                  step={1}
                   placeholder="例：4"
                   value={birthMonth}
                   onChange={(e) => setBirthMonth(e.target.value)}
