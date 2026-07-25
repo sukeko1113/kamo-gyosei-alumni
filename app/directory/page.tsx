@@ -20,7 +20,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { DirectoryData } from "@/types";
+import { cn, toHiragana } from "@/lib/utils";
+import { DEPARTMENTS, type Department, type DirectoryData } from "@/types";
+
+// 学科での絞り込み用の値。"all" はすべて表示。
+type DepartmentFilter = "all" | Department;
 
 export default function DirectoryPage() {
   const router = useRouter();
@@ -34,6 +38,9 @@ export default function DirectoryPage() {
   const [error, setError] = useState<string | null>(null);
   // 閲覧にはプロフィール登録が必要（サーバーが 403 PROFILE_REQUIRED を返した）状態。
   const [needsProfile, setNeedsProfile] = useState(false);
+  // 学科での絞り込み（既定はすべて表示）。
+  const [departmentFilter, setDepartmentFilter] =
+    useState<DepartmentFilter>("all");
 
   // --- 認証チェック：未ログインならログインページへ送る ---
   useEffect(() => {
@@ -98,6 +105,30 @@ export default function DirectoryPage() {
   // 未ログイン時は上の useEffect でリダイレクトされるため、ここでは何も表示しない。
   if (!user) return null;
 
+  // 学科フィルタを適用したグループ（クライアント側で絞り込む）。
+  // "all" のときはそのまま。学科指定時は各グループのメンバーを絞り、空グループは除く。
+  const visibleGroups =
+    data && departmentFilter !== "all"
+      ? data.groups
+          .map((g) => ({
+            ...g,
+            members: g.members.filter((m) => m.department === departmentFilter),
+          }))
+          .filter((g) => g.members.length > 0)
+      : (data?.groups ?? []);
+
+  // 絞り込み後の表示人数。
+  const visibleCount = visibleGroups.reduce(
+    (sum, g) => sum + g.members.length,
+    0
+  );
+
+  // フィルタのチップ（すべて + 4学科）。
+  const filterOptions: { value: DepartmentFilter; label: string }[] = [
+    { value: "all", label: "すべて" },
+    ...DEPARTMENTS.map((d) => ({ value: d as DepartmentFilter, label: d })),
+  ];
+
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:py-14">
       <div className="flex flex-col gap-8">
@@ -155,26 +186,54 @@ export default function DirectoryPage() {
         {/* 名簿本体 */}
         {data && !error && !needsProfile && (
           <>
+            {/* 学科での絞り込み（チップ）。タップ領域は 44px 以上を確保。 */}
+            <section aria-label="学科で絞り込む" className="flex flex-col gap-2">
+              <p className="text-base font-medium">学科で絞り込む</p>
+              <div className="flex flex-wrap gap-2">
+                {filterOptions.map((opt) => {
+                  const active = departmentFilter === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setDepartmentFilter(opt.value)}
+                      className={cn(
+                        "inline-flex min-h-[44px] items-center rounded-full border px-5 text-base font-medium transition-colors",
+                        active
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-input bg-background hover:bg-accent"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
             <p className="text-base text-muted-foreground">
-              現在の掲載人数：
+              {departmentFilter === "all" ? "現在の掲載人数：" : "該当人数："}
               <span className="font-bold text-foreground">
-                {data.totalCount.toLocaleString("ja-JP")}
+                {visibleCount.toLocaleString("ja-JP")}
               </span>{" "}
               名
             </p>
 
-            {/* 公開会員が0人のとき */}
-            {data.groups.length === 0 ? (
+            {/* 該当会員が0人のとき（全体が0、または絞り込みで0） */}
+            {visibleGroups.length === 0 ? (
               <Card>
                 <CardContent className="py-10 text-center">
                   <p className="text-lg text-muted-foreground">
-                    まだ公開されている方がいません。
+                    {departmentFilter === "all"
+                      ? "まだ公開されている方がいません。"
+                      : "この学科に該当する方がいません。"}
                   </p>
                 </CardContent>
               </Card>
             ) : (
               <div className="flex flex-col gap-6">
-                {data.groups.map((group) => (
+                {visibleGroups.map((group) => (
                   <Card
                     key={group.graduationYear ?? "unknown"}
                     aria-labelledby={`group-${group.graduationYear ?? "unknown"}`}
@@ -192,29 +251,47 @@ export default function DirectoryPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="flex flex-col divide-y">
-                        {group.members.map((m) => (
-                          <li
-                            key={m.uid}
-                            className="flex flex-col gap-1 py-4 first:pt-0"
-                          >
-                            <p className="text-lg font-semibold">
-                              {m.displayName || "（氏名未設定）"}
-                              {m.maidenName && (
-                                <span className="ml-2 text-base font-normal text-muted-foreground">
-                                  （旧姓：{m.maidenName}）
-                                </span>
-                              )}
-                            </p>
-                            {m.furigana && (
-                              <p className="text-base text-muted-foreground">
-                                {m.furigana}
+                        {group.members.map((m) => {
+                          // 読みは「にしむら こうすけ」形式（カタカナをひらがなに変換）。
+                          const reading = [
+                            toHiragana(m.lastNameKana),
+                            toHiragana(m.firstNameKana),
+                          ]
+                            .filter(Boolean)
+                            .join(" ");
+                          // 氏名は手入力の姓・名を結合して表示する。
+                          const fullName = [m.lastName, m.firstName]
+                            .filter(Boolean)
+                            .join(" ");
+                          return (
+                            <li
+                              key={m.uid}
+                              className="flex flex-col gap-1 py-4 first:pt-0"
+                            >
+                              <p className="text-lg font-semibold">
+                                {fullName || "（氏名未設定）"}
+                                {reading && (
+                                  <span className="ml-2 text-base font-normal text-muted-foreground">
+                                    （{reading}）
+                                  </span>
+                                )}
+                                {m.maidenName && (
+                                  <span className="ml-2 text-base font-normal text-muted-foreground">
+                                    （旧姓：{m.maidenName}）
+                                  </span>
+                                )}
                               </p>
-                            )}
-                            {m.clubActivity && (
-                              <p className="text-base">部活動・クラス：{m.clubActivity}</p>
-                            )}
-                          </li>
-                        ))}
+                              {m.department && (
+                                <p className="text-base">学科：{m.department}</p>
+                              )}
+                              {m.clubActivity && (
+                                <p className="text-base">
+                                  部活動・クラス：{m.clubActivity}
+                                </p>
+                              )}
+                            </li>
+                          );
+                        })}
                       </ul>
                     </CardContent>
                   </Card>

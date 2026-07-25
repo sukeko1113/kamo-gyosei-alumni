@@ -80,6 +80,17 @@ export default function DashboardPage() {
       String(value)
     );
 
+  // 画面に出す氏名は手入力の姓・名（Google 表示名は使わない）。
+  // 未登録のうちは Google 表示名で暫定的に補う。
+  const fullName =
+    [profile?.lastName, profile?.firstName].filter(Boolean).join(" ") ||
+    user.displayName ||
+    "（氏名未設定）";
+  // ふりがな（姓・名）。両方揃っていれば結合して表示する。
+  const fullNameKana = [profile?.lastNameKana, profile?.firstNameKana]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <main className="flex flex-1 flex-col items-center gap-8 p-8">
       <h1 className="text-3xl font-bold sm:text-4xl">マイページ</h1>
@@ -99,14 +110,16 @@ export default function DashboardPage() {
           ) : (
             // 画像がない場合は名前の頭文字を表示する代替アイコン。
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted text-2xl font-bold text-muted-foreground">
-              {(user.displayName ?? user.email ?? "?").charAt(0)}
+              {(profile?.lastName || user.displayName || user.email || "?").charAt(0)}
             </div>
           )}
 
           <div className="space-y-1">
-            <p className="text-xl font-bold">
-              {user.displayName ?? "（表示名未設定）"}
-            </p>
+            {/* 氏名は手入力の姓・名を表示する（Google 表示名は使わない）。 */}
+            <p className="text-xl font-bold">{fullName}</p>
+            {fullNameKana && (
+              <p className="text-base text-muted-foreground">{fullNameKana}</p>
+            )}
             <p className="text-base text-muted-foreground">{user.email}</p>
           </div>
         </div>
@@ -117,16 +130,20 @@ export default function DashboardPage() {
         <h2 className="text-xl font-bold">プロフィール</h2>
         <dl className="mt-3 flex flex-col divide-y divide-border rounded-lg border border-border">
           <div className="flex flex-col gap-1 p-4 sm:flex-row sm:gap-4">
-            <dt className="w-40 shrink-0 text-base font-medium">卒業年次（西暦）</dt>
-            <dd className="text-base">{show(profile?.graduationYear)}</dd>
+            <dt className="w-40 shrink-0 text-base font-medium">ふりがな</dt>
+            <dd className="text-base">{show(fullNameKana)}</dd>
           </div>
           <div className="flex flex-col gap-1 p-4 sm:flex-row sm:gap-4">
             <dt className="w-40 shrink-0 text-base font-medium">旧姓</dt>
             <dd className="text-base">{show(profile?.maidenName)}</dd>
           </div>
           <div className="flex flex-col gap-1 p-4 sm:flex-row sm:gap-4">
-            <dt className="w-40 shrink-0 text-base font-medium">ふりがな</dt>
-            <dd className="text-base">{show(profile?.furigana)}</dd>
+            <dt className="w-40 shrink-0 text-base font-medium">卒業学科</dt>
+            <dd className="text-base">{show(profile?.department)}</dd>
+          </div>
+          <div className="flex flex-col gap-1 p-4 sm:flex-row sm:gap-4">
+            <dt className="w-40 shrink-0 text-base font-medium">卒業年次（西暦）</dt>
+            <dd className="text-base">{show(profile?.graduationYear)}</dd>
           </div>
           <div className="flex flex-col gap-1 p-4 sm:flex-row sm:gap-4">
             <dt className="w-40 shrink-0 text-base font-medium">部活動・クラス</dt>
