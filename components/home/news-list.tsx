@@ -15,7 +15,7 @@ type NewsSectionProps = {
 export function NewsSection({ items }: NewsSectionProps) {
   return (
     <section id="news" className="bg-washi-panel">
-      <div className="mx-auto max-w-[880px] px-6 py-[clamp(64px,10vw,120px)]">
+      <div className="mx-auto max-w-[880px] px-6 py-[clamp(48px,6vw,80px)]">
         <h2 className="m-0 mb-3 font-serif text-[clamp(24px,3.5vw,32px)] font-semibold tracking-[0.2em]">
           お知らせ
         </h2>

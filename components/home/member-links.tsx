@@ -36,12 +36,12 @@ export function MemberLinks() {
   return (
     <section
       id="members"
-      className="mx-auto max-w-[1080px] px-6 py-[clamp(64px,10vw,120px)]"
+      className="mx-auto max-w-[1080px] px-6 py-[clamp(48px,6vw,80px)]"
     >
       <h2 className="m-0 mb-3 font-serif text-[clamp(24px,3.5vw,32px)] font-semibold tracking-[0.2em]">
         会員の方へ
       </h2>
-      <p className="m-0 mb-12 text-base tracking-[0.1em] text-ink-muted">
+      <p className="m-0 mb-10 text-base tracking-[0.1em] text-ink-muted">
         FOR MEMBERS
       </p>
 

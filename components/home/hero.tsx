@@ -12,6 +12,8 @@ export function Hero() {
         alt="旧校舎"
         fill
         priority
+        fetchPriority="high"
+        quality={70}
         sizes="100vw"
         className="object-cover contrast-[0.9] grayscale"
       />
@@ -24,7 +26,7 @@ export function Hero() {
         }}
       />
 
-      <div className="relative flex flex-col items-center gap-8 px-6 py-[clamp(72px,12vw,140px)] text-center">
+      <div className="relative flex flex-col items-center gap-8 px-6 py-[clamp(56px,8vw,96px)] text-center">
         {/* 円相（欠けた円）。禅の美意識を表す装飾。 */}
         <svg
           width="180"
@@ -53,7 +55,8 @@ export function Hero() {
           一〇六年のあゆみ
         </h1>
 
-        <p className="m-0 max-w-[34em] text-[17px] leading-[2] tracking-[0.06em] text-ink-soft">
+        {/* 高齢の利用者向けに、本文よりやや大きめ・高コントラストにする。 */}
+        <p className="m-0 max-w-[34em] text-[19px] font-medium leading-[1.95] tracking-[0.06em] text-[#241F19]">
           越後加茂の地に学び舎を得て一世紀余。
           <br />
           ここは、すべての卒業生の帰る場所です。

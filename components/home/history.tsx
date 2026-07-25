@@ -38,19 +38,19 @@ export function History() {
   return (
     <section
       id="history"
-      className="mx-auto max-w-[880px] px-6 py-[clamp(64px,10vw,120px)]"
+      className="mx-auto max-w-[880px] px-6 py-[clamp(48px,6vw,80px)]"
     >
       <h2 className="m-0 mb-3 font-serif text-[clamp(24px,3.5vw,32px)] font-semibold tracking-[0.2em]">
         あゆみ
       </h2>
-      <p className="m-0 mb-14 text-base tracking-[0.1em] text-ink-muted">HISTORY</p>
+      <p className="m-0 mb-10 text-base tracking-[0.1em] text-ink-muted">HISTORY</p>
 
       <div className="flex flex-col">
         {ENTRIES.map((entry) => (
           <div
             key={entry.era}
             className={`grid grid-cols-[24px_1fr] gap-[clamp(20px,4vw,40px)] ${
-              entry.last ? "" : "pb-[clamp(48px,8vw,80px)]"
+              entry.last ? "" : "pb-[clamp(36px,5vw,56px)]"
             }`}
           >
             {/* タイムラインの軸（丸印 + 縦線） */}
@@ -73,8 +73,10 @@ export function History() {
                 alt={entry.image.alt}
                 width={756}
                 height={434}
-                sizes="(max-width: 880px) 100vw, 640px"
-                className="block w-full max-w-[640px] border border-washi-line"
+                sizes="(max-width: 880px) calc(100vw - 88px), 640px"
+                // 幅可変でも width/height と aspect-ratio で描画前に領域を確保し CLS を防ぐ。
+                style={{ aspectRatio: "756 / 434" }}
+                className="block h-auto w-full max-w-[640px] border border-washi-line"
               />
               <p className="m-0 max-w-[38em] text-base leading-[1.9] text-ink-soft">
                 {entry.body}
