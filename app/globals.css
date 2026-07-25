@@ -57,6 +57,25 @@
 @theme inline {
   /* 本文フォントを Noto Sans JP に設定（layout.tsx で読み込んだ変数を利用） */
   --font-sans: var(--font-noto-sans-jp), ui-sans-serif, system-ui, sans-serif;
+  /* 見出し（短いコピー）用の明朝フォント Noto Serif JP。font-serif で利用する。 */
+  --font-serif: var(--font-noto-serif-jp), "Noto Serif JP", serif;
+
+  /* --------------------------------------------------------------
+     同窓会サイトのブランドカラー（トップページのデザインで使用）。
+     既存の shadcn セマンティックトークンとは別枠で追加する。
+     -------------------------------------------------------------- */
+  --color-ai: #1f4e8c; /* 藍（校章から抽出・差し色） */
+  --color-ai-dark: #163a6b; /* 藍（hover） */
+  --color-sumi: #1a1a1a; /* 墨（テキスト） */
+  --color-kinari: #faf8f5; /* 生成り（背景） */
+  --color-ink-soft: #3a362f; /* 本文の落ち着いた黒 */
+  --color-ink-muted: #6b655c; /* 補足テキスト */
+  --color-washi-line: #e5e0d8; /* 罫線（明） */
+  --color-washi-rule: #d8d2c8; /* 罫線（やや濃） */
+  --color-washi-panel: #f3f0ea; /* お知らせ帯の背景 */
+  --color-washi-card: #ffffff; /* カード面 */
+  --color-washi-hover: #ece8e0; /* リスト hover */
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
