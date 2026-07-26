@@ -14,7 +14,13 @@ import "server-only";
 import { FieldPath } from "firebase-admin/firestore";
 
 import { getAdminDb } from "@/lib/firebase-admin";
-import type { DirectoryData, DirectoryGroup, DirectoryMember } from "@/types";
+import { DEPARTMENTS } from "@/types";
+import type {
+  Department,
+  DirectoryData,
+  DirectoryGroup,
+  DirectoryMember,
+} from "@/types";
 
 // Firestore のコレクション名。
 const COLLECTION = "users";
@@ -52,23 +58,45 @@ export async function getDirectory(): Promise<DirectoryData> {
 
   // 公開フラグが true の会員だけを取得する。
   // .select() で必要な項目だけに絞り、メール項目は転送対象から除外する（多層防御）。
+  // ※ 生年月日は保存していないため、そもそも取得対象に存在しない。
   const snap = await db
     .collection(COLLECTION)
     .where("isListedInDirectory", "==", true)
-    .select("displayName", "furigana", "maidenName", "graduationYear", "clubActivity")
+    .select(
+      "lastName",
+      "firstName",
+      "lastNameKana",
+      "firstNameKana",
+      "maidenName",
+      "department",
+      "graduationYear",
+      "clubActivity"
+    )
     .get();
 
   // 取得結果を、公開してよい項目だけの DirectoryMember に詰め替える。
   const members: DirectoryMember[] = snap.docs.map((doc) => {
     const data = doc.data();
+    // department は 4 択のいずれかのときだけ採用し、それ以外は null にする。
+    const department =
+      typeof data.department === "string" &&
+      (DEPARTMENTS as readonly string[]).includes(data.department)
+        ? (data.department as Department)
+        : null;
     return {
       uid: doc.id,
-      displayName: typeof data.displayName === "string" ? data.displayName : "",
-      furigana: typeof data.furigana === "string" ? data.furigana : "",
+      lastName: typeof data.lastName === "string" ? data.lastName : "",
+      firstName: typeof data.firstName === "string" ? data.firstName : "",
+      lastNameKana:
+        typeof data.lastNameKana === "string" ? data.lastNameKana : "",
+      firstNameKana:
+        typeof data.firstNameKana === "string" ? data.firstNameKana : "",
       maidenName: typeof data.maidenName === "string" ? data.maidenName : "",
+      department,
       graduationYear:
         typeof data.graduationYear === "number" ? data.graduationYear : null,
-      clubActivity: typeof data.clubActivity === "string" ? data.clubActivity : "",
+      clubActivity:
+        typeof data.clubActivity === "string" ? data.clubActivity : "",
     };
   });
 
@@ -93,13 +121,19 @@ export async function getDirectory(): Promise<DirectoryData> {
     })
     .map(([graduationYear, list]) => ({
       graduationYear,
-      // グループ内はふりがな順（未入力は表示名で代替）に並べる。
-      members: list.sort((m1, m2) =>
-        (m1.furigana || m1.displayName).localeCompare(
-          m2.furigana || m2.displayName,
+      // グループ内は五十音順（姓のふりがな → 名のふりがな）に並べる。
+      // ふりがなが未入力の場合は手入力の姓・名で代替する。
+      members: list.sort((m1, m2) => {
+        const byLast = (m1.lastNameKana || m1.lastName).localeCompare(
+          m2.lastNameKana || m2.lastName,
           "ja"
-        )
-      ),
+        );
+        if (byLast !== 0) return byLast;
+        return (m1.firstNameKana || m1.firstName).localeCompare(
+          m2.firstNameKana || m2.firstName,
+          "ja"
+        );
+      }),
     }));
 
   return { totalCount: members.length, groups };

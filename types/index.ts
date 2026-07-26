@@ -8,21 +8,40 @@
 // 会員の権限。初期値は "member"。将来的に管理者（admin）を追加できる。
 export type UserRole = "member" | "admin";
 
+// 卒業学科の選択肢（4つ固定・「その他」は設けない）。
+// 商業科・情報処理科は現在は廃止されているが、過去の卒業生がいるため残す。
+// バリデーションや名簿の絞り込みでもこの一覧を正とする。
+export const DEPARTMENTS = [
+  "普通科",
+  "看護科",
+  "商業科",
+  "情報処理科",
+] as const;
+
+export type Department = (typeof DEPARTMENTS)[number];
+
 // Firebase Authentication + Firestore に保存する会員プロフィール。
 // uid / email / displayName / photoURL は Google ログインから取得できる項目。
+// ※ displayName は Google の表示名で「ログイン識別用」に保持するだけ。
+//   画面には出さず、氏名の表示は手入力の lastName / firstName を使う。
 export type User = {
   uid: string; // Firebase が発行する一意のユーザー ID
   email: string | null; // メールアドレス
-  displayName: string | null; // 表示名
+  displayName: string | null; // Google の表示名（ログイン識別用・画面非表示）
   photoURL: string | null; // プロフィール画像の URL
   role: UserRole; // 権限（初回ログイン時は "member"）。クライアントからは変更不可。
 
-  // --- 会員自身が編集できるプロフィール項目（すべて任意・未入力可） ---
-  graduationYear?: number; // 卒業年次（西暦）。未入力のときは保存しない / null。
-  maidenName?: string; // 旧姓
-  furigana?: string; // 氏名のふりがな（全角カナ）
-  clubActivity?: string; // 当時の部活動・クラスなど
-  contactEmail?: string; // 連絡用メール（Google アカウントとは別にしたい人向け）
+  // --- 会員自身が編集できるプロフィール項目 ---
+  // 氏名は手入力に統一する。姓・名・姓名のふりがなは必須項目。
+  lastName?: string; // 姓（現在）・必須
+  firstName?: string; // 名（現在）・必須
+  lastNameKana?: string; // 姓のふりがな（全角カタカナで正規化して保存）・必須
+  firstNameKana?: string; // 名のふりがな（全角カタカナで正規化して保存）・必須
+  maidenName?: string; // 旧姓（任意・改姓した人のみ。卒業時の姓）
+  department?: Department; // 卒業学科・必須
+  graduationYear?: number; // 卒業年次（西暦）・必須。名簿の主要な検索軸。
+  clubActivity?: string; // 当時の部活動・クラスなど（任意）
+  contactEmail?: string; // 連絡用メール（Google アカウントとは別にしたい人向け・任意）
 
   // 卒業生名簿への掲載可否（本人のオプトイン）。
   // true のときだけ /directory（卒業生名簿）に氏名などが掲載される。
@@ -31,6 +50,9 @@ export type User = {
 
   createdAt?: unknown; // 登録日時（Firestore の serverTimestamp で記録）
   updatedAt?: unknown; // 最終更新日時（Firestore の serverTimestamp で記録）
+
+  // ★ 生年月日は保存しない ★
+  // 卒業年次の計算補助にのみフォーム上で一時利用し、Firestore には一切残さない。
 };
 
 // ----------------------------------------------------------------
@@ -40,11 +62,15 @@ export type User = {
 // 名簿に掲載する1人分のデータ。
 // ★ 連絡先メール（contactEmail）や Google アカウントのメール（email）は
 //    一切含めない。サーバー側（Admin SDK）でこの形に詰め替えてから返す。
+// ★ 生年月日は保存していないため、当然ここにも含まれない。
 export type DirectoryMember = {
   uid: string; // 会員の Firebase UID（一覧の key などに使う）
-  displayName: string; // 氏名（表示名）
-  furigana: string; // 氏名のふりがな
-  maidenName: string; // 旧姓
+  lastName: string; // 姓（手入力）
+  firstName: string; // 名（手入力）
+  lastNameKana: string; // 姓のふりがな（全角カタカナ）
+  firstNameKana: string; // 名のふりがな（全角カタカナ）
+  maidenName: string; // 旧姓（改姓者のみ・任意）
+  department: Department | null; // 卒業学科（旧データ等で未設定なら null）
   graduationYear: number | null; // 卒業年次（未設定は null）
   clubActivity: string; // 当時の部活動・クラスなど
 };
