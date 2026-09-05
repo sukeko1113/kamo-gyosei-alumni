@@ -2,8 +2,6 @@
 // 同窓会サイトの顔として、あゆみ（沿革）・お知らせ・会員導線を1枚で見せる。
 // お知らせ（news）は microCMS からサーバーサイドで取得し、最新数件をプレビュー表示する。
 // 全件は /news の一覧ページへ誘導する。
-import { SiteHeader } from "@/components/layout/site-header";
-import { SiteFooter } from "@/components/layout/site-footer";
 import { Hero } from "@/components/home/hero";
 import { History } from "@/components/home/history";
 import { NewsSection } from "@/components/home/news-list";
@@ -17,16 +15,14 @@ export default async function Home() {
   // サーバー側で最新のお知らせを取得する（最新4件・公開日の新しい順）。
   const { contents: newsList } = await getNewsList({ limit: 4 });
 
+  // ヘッダー・フッターはルートレイアウト（app/layout.tsx）で全ページ共通に
+  // 表示されるため、ここでは本文だけを描画する。
   return (
-    <div className="flex min-h-screen flex-col bg-kinari text-sumi">
-      <SiteHeader />
-      <main className="flex-1">
-        <Hero />
-        <History />
-        <NewsSection items={newsList} />
-        <MemberLinks />
-      </main>
-      <SiteFooter />
-    </div>
+    <main className="flex-1 bg-kinari text-sumi">
+      <Hero />
+      <History />
+      <NewsSection items={newsList} />
+      <MemberLinks />
+    </main>
   );
 }
