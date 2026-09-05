@@ -25,6 +25,43 @@ export function formatJaDate(isoDate?: string): string {
   }).format(date);
 }
 
+// 「今日」の月日を日本時間（Asia/Tokyo）で "MM-DD" 形式にして返す。
+// Vercel のサーバー時刻は UTC のため、そのまま Date を使うと日本の未明に
+// 前日扱いになってしまう。Intl.DateTimeFormat でタイムゾーンを固定する。
+export function getTokyoMonthDay(): string {
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Tokyo",
+  }).formatToParts(new Date());
+  const month = parts.find((p) => p.type === "month")?.value ?? "01";
+  const day = parts.find((p) => p.type === "day")?.value ?? "01";
+  return `${month}-${day}`;
+}
+
+// 1〜99 の数を漢数字にする（日付表示用）。
+// 十の位の扱い: 10→十、11→十一、20→二十、25→二十五、30→三十、31→三十一。
+function numberToKanji(n: number): string {
+  const digits = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+  if (n <= 0 || n > 99) return String(n); // 想定外はそのまま数字で返す。
+  if (n < 10) return digits[n];
+  const tens = Math.floor(n / 10);
+  const ones = n % 10;
+  // 10台は「十」から始める（一十とは書かない）。20以上は「二十」「三十」…。
+  return (tens === 1 ? "十" : digits[tens] + "十") + digits[ones];
+}
+
+// "MM-DD" 形式の月日を「九月五日」のような漢数字表記にする。
+// 形式が不正な場合は空文字を返す（表示側でそのまま出しても崩れない）。
+export function formatMonthDayKanji(mmdd: string): string {
+  const match = mmdd.match(/^(\d{2})-(\d{2})$/);
+  if (!match) return "";
+  const month = Number(match[1]);
+  const day = Number(match[2]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return "";
+  return `${numberToKanji(month)}月${numberToKanji(day)}日`;
+}
+
 // ふりがなを「全角カタカナ」に正規化する（保存前に使用）。
 // - ひらがな・カタカナのどちらで入力されてもカタカナに揃える。
 // - 半角カナ（例: ﾔﾏﾀﾞ）は NFKC 正規化で全角カタカナ（ヤマダ）に変換する。

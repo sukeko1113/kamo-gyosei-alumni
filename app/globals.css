@@ -59,6 +59,8 @@
   --font-sans: var(--font-noto-sans-jp), ui-sans-serif, system-ui, sans-serif;
   /* 見出し（短いコピー）用の明朝フォント Noto Serif JP。font-serif で利用する。 */
   --font-serif: var(--font-noto-serif-jp), "Noto Serif JP", serif;
+  /* 「今日の瞑想録」の縦書き本文専用の しっぽり明朝。font-shippori で利用する。 */
+  --font-shippori: var(--font-shippori-mincho), "Shippori Mincho", serif;
 
   /* --------------------------------------------------------------
      同窓会サイトのブランドカラー（トップページのデザインで使用）。

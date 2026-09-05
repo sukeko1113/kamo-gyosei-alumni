@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 // 日本語を美しく表示できる Noto Sans JP（本文）と Noto Serif JP（見出し）を
 // Google Fonts から読み込む。
-import { Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
+import { Noto_Sans_JP, Noto_Serif_JP, Shippori_Mincho } from "next/font/google";
 import "./globals.css";
 // ログイン状態をアプリ全体で共有するための Provider。
 import { AuthProvider } from "@/components/auth-provider";
@@ -26,6 +26,15 @@ const notoSerifJP = Noto_Serif_JP({
   display: "swap",
 });
 
+// 「今日の瞑想録」の縦書き本文専用の明朝フォント（しっぽり明朝）。
+// CSS 変数 --font-shippori-mincho として使えるようにする。
+const shipporiMincho = Shippori_Mincho({
+  variable: "--font-shippori-mincho",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+});
+
 // ブラウザのタブやSNS共有時に表示されるサイトの基本情報。
 export const metadata: Metadata = {
   title: "加茂暁星高等学校 同窓会",
@@ -41,7 +50,7 @@ export default function RootLayout({
     // lang="ja" で日本語サイトであることをブラウザ・支援技術に伝える。
     <html
       lang="ja"
-      className={`${notoSansJP.variable} ${notoSerifJP.variable} h-full antialiased`}
+      className={`${notoSansJP.variable} ${notoSerifJP.variable} ${shipporiMincho.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
         {/* AuthProvider で包むことで、配下の全ページがログイン状態を参照できる */}
