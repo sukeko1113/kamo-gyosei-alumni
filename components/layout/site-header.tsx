@@ -1,17 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
 
-// ナビの並び。沿革・お知らせ・会員の方へ はトップページ内の該当セクションへ
-// スクロールするアンカー。ログインは既存の /login ルートへ遷移する。
+import { HeaderAuthLink } from "@/components/layout/header-auth-link";
+
+// ナビの並び。沿革・お知らせ・会員の方へ はトップページ内の該当セクションへの
+// アンカー。全ページ共通ヘッダーになったため、トップページ以外から押しても
+// 「/ へ移動してからスクロール」できるよう `/#...` 形式にする。
 const NAV_LINKS = [
-  { href: "#history", label: "沿革" },
-  { href: "#news", label: "お知らせ" },
-  { href: "#members", label: "会員の方へ" },
+  { href: "/#history", label: "沿革" },
+  { href: "/#news", label: "お知らせ" },
+  { href: "/#members", label: "会員の方へ" },
 ];
 
 /**
- * 共通ヘッダー（校章 + サイト名 + ナビ + ログイン）。
- * 全ページで再利用できるよう切り出した共通コンポーネント。
+ * 共通ヘッダー（校章 + サイト名 + ナビ + ログイン／マイページ）。
+ * ルートレイアウトから全ページで表示する共通コンポーネント。
+ * サイト名（ロゴ）をクリックするとトップページ（/）へ戻れる。
  * 高齢の利用者に配慮し、リンクのタップ領域は最小 44px を確保している。
  */
 export function SiteHeader() {
@@ -41,20 +45,16 @@ export function SiteHeader() {
 
       <nav className="flex flex-wrap items-center gap-1">
         {NAV_LINKS.map((link) => (
-          <a
+          <Link
             key={link.href}
             href={link.href}
             className="flex min-h-[44px] items-center px-4 text-base font-medium text-sumi no-underline transition-colors hover:text-ai"
           >
             {link.label}
-          </a>
+          </Link>
         ))}
-        <Link
-          href="/login"
-          className="ml-2 flex min-h-[44px] items-center rounded-sm bg-ai px-6 text-base font-medium text-kinari no-underline transition-colors hover:bg-ai-dark hover:text-kinari"
-        >
-          ログイン
-        </Link>
+        {/* ログイン状態で「ログイン」⇔「マイページ」を切り替える（クライアント部品） */}
+        <HeaderAuthLink />
       </nav>
     </header>
   );

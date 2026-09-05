@@ -5,6 +5,9 @@ import { Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 // ログイン状態をアプリ全体で共有するための Provider。
 import { AuthProvider } from "@/components/auth-provider";
+// 全ページ共通のヘッダー・フッター（どのページからもトップへ戻れるようにする）。
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 
 // 本文フォント。CSS 変数 --font-noto-sans-jp として使えるようにする。
 // 見出しの font-medium / font-bold を正しく描画するため太さも読み込む。
@@ -42,7 +45,13 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         {/* AuthProvider で包むことで、配下の全ページがログイン状態を参照できる */}
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {/* 共通ヘッダー。サイト名でトップへ戻れ、ログイン中は「マイページ」を表示する。
+              ログイン状態を参照するため AuthProvider の内側に置く。 */}
+          <SiteHeader />
+          {children}
+          <SiteFooter />
+        </AuthProvider>
       </body>
     </html>
   );
