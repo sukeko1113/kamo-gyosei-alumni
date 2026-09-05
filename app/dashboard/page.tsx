@@ -13,7 +13,6 @@ import { signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/components/auth-provider";
-import { AdminNavLink } from "@/components/admin-nav-link";
 import { Button } from "@/components/ui/button";
 import type { User } from "@/types";
 
@@ -182,8 +181,10 @@ export default function DashboardPage() {
         <Button variant="outline" size="lg" asChild>
           <Link href="/directory">卒業生名簿を見る</Link>
         </Button>
-        {/* 管理者のときだけ「管理：署名一覧」への導線を表示する（一般会員には出さない）。 */}
-        <AdminNavLink />
+        {/* トップページ（HP）へ戻る導線。管理者・一般会員を問わず常に表示する。 */}
+        <Button variant="outline" size="lg" asChild>
+          <Link href="/">HPに戻る</Link>
+        </Button>
         <Button variant="outline" size="lg" onClick={handleLogout}>
           ログアウト
         </Button>
