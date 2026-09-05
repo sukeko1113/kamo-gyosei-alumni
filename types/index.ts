@@ -131,6 +131,15 @@ export type News = MicroCMSBase & {
   eyecatch?: MicroCMSImage; // アイキャッチ画像（任意）
 };
 
+// meditations エンドポイントの1件分の型。
+// 西村大串『瞑想録』（日記形式のエッセイ集）から、その日の月日に対応する一編。
+export type Meditation = MicroCMSBase & {
+  date: string; // "MM-DD" 形式の月日（例 "09-05"）。年は持たない。必須。
+  original: string; // 当時の言葉。改行で段落区切り。必須。
+  modern: string; // 現代語訳。改行で段落区切り。必須。
+  source?: string; // 出典（例「三二〇頁」）。任意。
+};
+
 // お知らせ一覧 API のレスポンス（microCMS のリスト形式）。
 export type NewsListResponse = {
   contents: News[]; // お知らせの配列

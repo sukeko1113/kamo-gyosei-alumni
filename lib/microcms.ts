@@ -3,7 +3,7 @@
 // ビルドエラーになる。API キーがブラウザに漏れるのを防ぐための安全装置。
 import "server-only";
 import { createClient, type MicroCMSQueries } from "microcms-js-sdk";
-import type { News, NewsListResponse } from "@/types";
+import type { Meditation, News, NewsListResponse } from "@/types";
 
 // 環境変数を読み込む。MICROCMS_API_KEY には絶対に NEXT_PUBLIC_ を付けないこと
 // （付けるとブラウザに公開され、誰でも管理 API を叩けてしまう）。
@@ -37,6 +37,29 @@ export async function getNewsList(
     endpoint: "news",
     queries: { orders: "-publishedAt", ...queries },
   });
+}
+
+// ----------------------------------------------------------------
+// 今日の瞑想録（meditations エンドポイント）
+// ----------------------------------------------------------------
+
+// 指定した月日（"MM-DD" 形式）に対応する『瞑想録』の一編を取得する。
+// 該当する日のコンテンツが無ければ null を返す。
+// エンドポイント未作成・API エラーの場合も null を返し、トップページ全体が
+// 落ちないようにする（エラー内容はサーバーログにのみ残す）。
+export async function getMeditationByDate(
+  date: string
+): Promise<Meditation | null> {
+  try {
+    const { contents } = await client.getList<Meditation>({
+      endpoint: "meditations",
+      queries: { filters: `date[equals]${date}`, limit: 1 },
+    });
+    return contents[0] ?? null;
+  } catch (error) {
+    console.error("瞑想録の取得に失敗しました:", error);
+    return null;
+  }
 }
 
 // お知らせ 1 件を ID 指定で取得する（記事詳細ページで使用）。
