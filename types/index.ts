@@ -8,6 +8,9 @@
 // 会員の権限。初期値は "member"。将来的に管理者（admin）を追加できる。
 export type UserRole = "member" | "admin";
 
+// ログインに使った認証プロバイダの種類。
+export type AuthProviderId = "google" | "line";
+
 // 卒業学科の選択肢（4つ固定・「その他」は設けない）。
 // 商業科・情報処理科は現在は廃止されているが、過去の卒業生がいるため残す。
 // バリデーションや名簿の絞り込みでもこの一覧を正とする。
@@ -30,6 +33,13 @@ export type User = {
   displayName: string | null; // Google の表示名（ログイン識別用・画面非表示）
   photoURL: string | null; // プロフィール画像の URL
   role: UserRole; // 権限（初回ログイン時は "member"）。クライアントからは変更不可。
+
+  // このアカウントで使われたログイン方法（'google' | 'line'）。
+  // LINE で新規作成した会員は ['line']。旧データでは未設定の場合がある。
+  authProviders?: AuthProviderId[];
+  // LINE のユーザー ID（表示用）。LINE ログインを使った会員のみ持つ。
+  // ※ 会員 ID はあくまで Firebase UID。この値を ID として使わない。
+  lineUserId?: string;
 
   // --- 会員自身が編集できるプロフィール項目 ---
   // 氏名は手入力に統一する。姓・名・姓名のふりがなは必須項目。

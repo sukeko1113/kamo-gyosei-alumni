@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
       },
+      {
+        // LINE ログインのプロフィール画像。
+        protocol: "https",
+        hostname: "profile.line-scdn.net",
+      },
     ],
   },
 };
