@@ -120,7 +120,14 @@ export default function DashboardPage() {
             {fullNameKana && (
               <p className="text-base text-muted-foreground">{fullNameKana}</p>
             )}
-            <p className="text-base text-muted-foreground">{user.email}</p>
+            {/* メールアドレスは Google ログインの会員のみ持つ。
+                LINE ログインの会員は email が null のため、代わりに
+                ログイン方法が分かる表記を出す（空欄のままにしない）。 */}
+            {user.email ? (
+              <p className="text-base text-muted-foreground">{user.email}</p>
+            ) : (
+              <p className="text-base text-muted-foreground">LINE でログイン中</p>
+            )}
           </div>
         </div>
       </section>
